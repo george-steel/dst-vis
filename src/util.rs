@@ -26,6 +26,11 @@ impl Rectangle2 {
         }
     }
 
+    pub fn add_margin(&mut self, margin: f32) {
+        self.min -= vec2(margin, margin);
+        self.max += vec2(margin, margin);
+    }
+
     pub fn center(&self) -> Point2<f32> {
         self.max.midpoint(self.min)
     }

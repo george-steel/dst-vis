@@ -1,7 +1,7 @@
 use crate::model::*;
 use crate::util::*;
 use std::ops::Range;
-use wgpu::{BindGroupEntry, BindGroupLayoutDescriptor, BindGroupLayoutEntry, Buffer, BufferUsages};
+use wgpu::{BindGroupEntry, BufferUsages};
 use wgpu::util::DeviceExt;
 
 
@@ -22,6 +22,7 @@ pub struct EmbDisplay {
     pipeline: wgpu::RenderPipeline,
     camera_buf: wgpu::Buffer,
     block_buf: wgpu::Buffer,
+    stitch_buf: wgpu::Buffer,
     block_ranges: Vec<Range<u32>>,
     bind_group: wgpu::BindGroup,
     design_bounds: Rectangle2,
@@ -52,15 +53,13 @@ impl EmbDisplay {
                 targets: &[Some(texture_format.into())],
             }),
             primitive: wgpu::PrimitiveState {
-                topology: wgpu::PrimitiveTopology::LineStrip,
+                topology: wgpu::PrimitiveTopology::TriangleList,
                 ..wgpu::PrimitiveState::default()
             },
             depth_stencil: None,
             multisample: wgpu::MultisampleState::default(),
             multiview: None,
         });
-
-        let initial_ransform: [[f32; 2]; 2] = [[1.0,0.0], [0.0,1.0]];
 
         let camera_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor{
             label: Some("transform"),
@@ -86,6 +85,7 @@ impl EmbDisplay {
                 block_ranges.push((i as u32)..(j as u32));
             }
         }
+        design_bounds.add_margin(1.0);
         let block_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor{
             label: Some("blocks"),
             contents: bytemuck::cast_slice(&block_data),
@@ -109,6 +109,7 @@ impl EmbDisplay {
             pipeline: render_pipeline,
             camera_buf,
             block_buf,
+            stitch_buf,
             block_ranges,
             bind_group,
             design_bounds,
@@ -138,7 +139,7 @@ impl EmbDisplay {
         rpass.set_bind_group(0, &self.bind_group, &[]);
         rpass.set_pipeline(&self.pipeline);
         for (i, blk) in (0..).zip(self.block_ranges.iter()){
-            rpass.draw(blk.clone(), i..i+1);
+            rpass.draw(6*blk.start .. 6*(blk.end-1), i..i+1);
         }
     }
 }
