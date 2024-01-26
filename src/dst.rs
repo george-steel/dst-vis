@@ -1,5 +1,5 @@
 use cgmath::{point2, Vector2, vec2};
-use crate::model::*;
+use crate::{model::*, util::RGBA32float};
 
 struct DSTStitch {
     dp: Vector2<i32>,
@@ -53,7 +53,7 @@ impl DSTStitch {
     }
 }
 
-pub fn decode_dst(buf: &[u8], colors: &[Color]) -> Vec<EmbOp> {
+pub fn decode_dst(buf: &[u8], colors: &[RGBA32float]) -> Vec<EmbOp> {
     if buf.len() < 512 {
         return Vec::new();
     }
@@ -92,7 +92,7 @@ pub fn decode_dst(buf: &[u8], colors: &[Color]) -> Vec<EmbOp> {
             }
         } else {
             njumps = 0;
-            current_block.push(point2(pos.x as f32 * 0.1, pos.y as f32 * 0.1));
+            current_block.push(point2(pos.x as f32 / 10.0, pos.y as f32 / 10.0));
         }
     }
 

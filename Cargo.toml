@@ -12,3 +12,8 @@ log = "0.4.20"
 pollster = "0.3.0"
 wgpu = "0.19.1"
 winit = "0.29.10"
+
+[dependencies.bytemuck]
+version = "1.14.1"
+features = ["derive"]
+

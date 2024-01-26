@@ -1,12 +1,13 @@
 mod dst;
 mod model;
 mod renderer;
+mod util;
 
-use std::{env, fs::File, io::Read, path::Path, sync::Arc};
+use std::{env, fs::File, io::Read, path::Path};
+use util::{srgba, RGBA32float};
 use winit::{
     event::{Event, WindowEvent},
     event_loop::EventLoop,
-    window::Window,
 };
 
 async fn get_wgpu_device(gpu: &wgpu::Instance, surface: &wgpu::Surface<'_>) -> (wgpu::Adapter, wgpu::Device, wgpu::Queue) {
@@ -43,6 +44,15 @@ fn surface_srgb_format(adapter: &wgpu::Adapter, surface: &wgpu::Surface) -> wgpu
 }
 
 fn load_design() -> Vec<model::EmbOp> {
+    let ROYGBIV: &[RGBA32float] = &[
+        srgba(0xaa3355ff),
+        srgba(0xee9944ff),
+        srgba(0xeedd00ff),
+        srgba(0x44dd88ff),
+        srgba(0x00bbccff),
+        srgba(0x3366bbff),
+        srgba(0x663399ff),
+    ];
     let args: Box<[String]> = env::args().collect();
     if args.len() < 2 {
         panic!("No file specified.");
@@ -57,6 +67,10 @@ fn load_design() -> Vec<model::EmbOp> {
 fn main() {
     env_logger::builder().filter_level(log::LevelFilter::Info).init();
     log::info!("starting up");
+
+    let design = load_design();
+    log::info!("loaded design");
+
     let gpu = wgpu::Instance::default();
     let event_loop = EventLoop::new().unwrap();
     let window = winit::window::WindowBuilder::new().build(&event_loop).unwrap();
@@ -75,7 +89,7 @@ fn main() {
     };
     surface.configure(&device, &surface_config);
 
-    let mut display = renderer::EmbDisplay::new(&device, surface_format);
+    let mut display = renderer::EmbDisplay::new(&device, surface_format, &design);
 
     let window = &window;
     event_loop
@@ -103,15 +117,12 @@ fn main() {
                         let frame = surface
                             .get_current_texture()
                             .expect("Failed to acquire next swap chain texture");
-                        let view = frame
-                            .texture
-                            .create_view(&wgpu::TextureViewDescriptor::default());
                         let mut encoder =
                             device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
                                 label: None,
                             });
                         
-                        display.render(&mut encoder, &view);
+                        display.render(&queue, &mut encoder, &frame.texture);
 
                         queue.submit(Some(encoder.finish()));
                         frame.present();
@@ -123,5 +134,3 @@ fn main() {
         })
         .unwrap();
 }
-
-const ROYGBIV: &[[f32;3]]  = &[[1.0, 0.0, 0.0]];
