@@ -91,7 +91,7 @@ fn main() {
     };
     surface.configure(&device, &surface_config);
 
-    let mut display = renderer::EmbDisplay::new(&device, surface_format, &design);
+    let mut display = renderer::EmbDisplay::new(&device, surface_format, &design, size);
 
     let window = &window;
     event_loop
@@ -109,6 +109,7 @@ fn main() {
                 match event {
                     WindowEvent::Resized(new_size) => {
                         // Reconfigure the surface with the new size
+                        display.resize(&device, surface_format, new_size);
                         surface_config.width = new_size.width.max(1);
                         surface_config.height = new_size.height.max(1);
                         surface.configure(&device, &surface_config);

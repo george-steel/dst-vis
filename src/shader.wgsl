@@ -30,7 +30,7 @@ const vertpos: array<vec2f, 6> = array(
 struct VSOut {
     @builtin(position) pos: vec4f,
     @location(0) color: vec4f,
-    @location(1) uuv: vec3f,
+    @location(1) @interpolate(linear,sample) uuv: vec3f,
 }
 
 @vertex
