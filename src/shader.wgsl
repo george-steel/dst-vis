@@ -18,7 +18,7 @@ struct Camera2D{
 const thread_radius: f32 = 0.15;
 const end_falloff: f32 = 0.2;
 
-var<private> vertpos: array<vec2f, 6> = array(
+const vertpos: array<vec2f, 6> = array(
     vec2f(0, 1),
     vec2f(0, -1),
     vec2f(1, -1),

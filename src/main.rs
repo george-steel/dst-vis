@@ -7,7 +7,7 @@ use std::{env, fs::File, io::Read, path::Path};
 use util::{srgba, RGBA32float};
 use winit::{
     event::{Event, WindowEvent},
-    event_loop::EventLoop,
+    event_loop::EventLoop, window::Window,
 };
 
 async fn get_wgpu_device(gpu: &wgpu::Instance, surface: &wgpu::Surface<'_>) -> (wgpu::Adapter, wgpu::Device, wgpu::Queue) {
@@ -30,7 +30,9 @@ async fn get_wgpu_device(gpu: &wgpu::Instance, surface: &wgpu::Surface<'_>) -> (
             required_features: wgpu::Features::empty(),
             // Make sure we use the texture resolution limits from the adapter, so we can support images the size of the swapchain.
             required_limits: wgpu::Limits::default(),
-        }, None)
+            memory_hints: Default::default(),
+            trace: Default::default(),
+        })
         .await
         .expect("Failed to create device");
     (adapter, dev, queue)
@@ -73,7 +75,7 @@ fn main() {
 
     let gpu = wgpu::Instance::default();
     let event_loop = EventLoop::new().unwrap();
-    let window = winit::window::WindowBuilder::new().build(&event_loop).unwrap();
+    let window = event_loop.create_window(Window::default_attributes()).unwrap();
     let surface = gpu.create_surface(&window).unwrap();
 
     let (adapter, device, queue) = pollster::block_on(get_wgpu_device(&gpu, &surface));
